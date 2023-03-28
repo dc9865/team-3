@@ -13,6 +13,7 @@ Resources:
                         Service: 
                             - "lambda.amazonaws.com"
                             - "comprehend.amazonaws.com"
+                            - "apigateway.amazonaws.com"
                     Action: 
                         - "sts:AssumeRole"
             Policies:
@@ -57,3 +58,36 @@ Resources:
             Handler: lambda_function.lambda_handler
             Role: !GetAtt LambdaRole.Arn
             Runtime: 'python3.9'
+
+    SentimentGateway:
+      Type: AWS::ApiGateway::RestApi
+      Properties: 
+        ApiKeySourceType: HEADER
+        EndpointConfiguration:
+          Types:
+            - REGIONAL
+        Name: SentimentAnalysisAPI
+
+    SentimentGatewayResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId: !GetAtt SentimentGateway.RootResourceId
+        PathPart: 'analysis'
+        RestApiId: !Ref SentimentGateway
+
+    ApiGatewayMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        ApiKeyRequired: false
+        AuthorizationType: NONE
+        HttpMethod: GET
+        Integration:
+          Credentials: !GetAtt LambdaRole.Arn
+          IntegrationHttpMethod: GET
+          RequestTemplates:
+            application/json : '{"inputTranscript": "I want something"}'
+          Type: AWS
+          Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SentimentFunction.Arn}/invocations'
+        OperationName: 'lambda'
+        ResourceId: !Ref SentimentGatewayResource
+        RestApiId: !Ref SentimentGateway
