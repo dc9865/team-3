@@ -135,3 +135,21 @@ Resources:
           - !Ref SentimentFunction
           - '/'
           - !Ref SentimentGatewayResource
+
+  # THIS STILL DOESN'T WORK
+  GWAuth:
+    Type: AWS::ApiGateway::Authorizer
+    Properties: 
+      AuthorizerUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SentimentFunction.Arn}/invocations"
+      RestApiId: !Ref SentimentAPI
+      Type: "REQUEST"
+      IdentitySource: method.request.header.authorization
+      Name: custom_auth
+
+  GWAuthPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SentimentFunction.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SentimentAPI}/authorizers/${GWAuth}"
