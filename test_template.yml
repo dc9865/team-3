@@ -19,21 +19,6 @@ Resources:
         - 'arn:aws:iam::aws:policy/ComprehendFullAccess'
         - 'arn:aws:iam::aws:policy/service-role/ComprehendDataAccessRolePolicy'
         - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
-      RoleName: LambdaRole
-
-  SentimentFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Path: "/"
       Policies:
       - PolicyName: AppendToLogsPolicy
         PolicyDocument:
@@ -45,6 +30,7 @@ Resources:
             - logs:CreateLogStream
             - logs:PutLogEvents
             Resource: "*"
+      RoleName: LambdaRole
 
   SentimentFunction:
     Type: AWS::Lambda::Function
@@ -63,7 +49,7 @@ Resources:
             return result
       FunctionName: 'SentimentFunction'
       Handler: index.lambda_handler
-      Role: !GetAtt SentimentFunctionRole.Arn
+      Role: !GetAtt LambdaRole.Arn
       Runtime: 'python3.9'
 
   SentimentAPI:
@@ -71,7 +57,7 @@ Resources:
     Properties:
       EndpointConfiguration:
         Types:
-        - EDGE
+        - REGIONAL
       Name: SentimentAPI
 
   RestApiDeployment:
@@ -93,13 +79,19 @@ Resources:
     Type: AWS::ApiGateway::Method
     DependsOn:
     - SentimentLambdaPermission
+    - SentimentFunction
     Properties:
       ApiKeyRequired: false
       AuthorizationType: NONE
-      HttpMethod: POST
+      HttpMethod: GET
       Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
+        IntegrationHttpMethod: GET
+        IntegrationResponses:
+          - StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+            application/json : '{"inputTranscript": "I want something"}'
+        Type: AWS
         Uri:
           !Join
           - ''
@@ -110,6 +102,10 @@ Resources:
             - :lambda:path/2015-03-31/functions/
             - !GetAtt SentimentFunction.Arn
             - /invocations
+      MethodResponses:
+        - ResponseModels:
+            application/json : Empty
+          StatusCode: '200'
       ResourceId: !Ref SentimentGatewayResource
       RestApiId: !Ref SentimentAPI
 
