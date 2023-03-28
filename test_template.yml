@@ -115,13 +115,13 @@ Resources:
       ResourceId: !Ref SentimentGatewayResource
       RestApiId: !Ref SentimentAPI
 
+  # TODO: FIX THIS, PERMISSIONS DON'T ALLOW API GATEWAY TO CALL LAMBDA INITIALLY
   LambdaInvocationPermission:
     Type: AWS::Lambda::Permission
     Properties: 
-      Action: lambda:*
-      FunctionName: !GetAtt SentimentFunction.Arn
-      Principal: apigateway.amazonaws.com
-      # SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AWS::Region}/*/<method>/<resource>"
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref SentimentFunction
+      Principal: "apigateway.amazonaws.com"
       SourceArn:
         !Join
         - ''
