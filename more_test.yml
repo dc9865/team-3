@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  SentimentAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
+      Name: SentimentAPI
+
+  RestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - SentimentAPI
+      - SentimentAnalysis
+    Properties:
+      RestApiId: !Ref SentimentAPI
+      StageName: dev
+
+  SentimentGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    DependsOn:
+      - SentimentAPI
+    Properties:
+      ParentId: !GetAtt SentimentAPI.RootResourceId
+      PathPart: analysis
+      RestApiId: !Ref SentimentAPI
+
+  SentimentAnalysis:
+    Type: AWS::ApiGateway::Method
+    DependsOn:
+      - SentimentGatewayResource
+      - SentimentAPI
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: GET
+        IntegrationResponses:
+          - StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+            application/json : '{"inputTranscript": "I want something"}'
+        Type: AWS
+        Uri:
+          !Join
+          - ''
+          - - 'arn:'
+            - !Ref AWS::Partition
+            - ':apigateway:'
+            - !Ref AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - arn:aws:lambda:us-east-1:204035748263:function:SentimentAnalysis
+            - /invocations
+      MethodResponses:
+        - ResponseModels:
+            application/json : Empty
+          StatusCode: '200'
+      ResourceId: !Ref SentimentGatewayResource
+      RestApiId: !Ref SentimentAPI
