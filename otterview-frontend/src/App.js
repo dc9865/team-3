@@ -13,34 +13,31 @@ class App extends Component {
         )
     }
 
+    render () {
+        let html = []
+        for (let i = 1; i <= 100; i++) {
+            html.push(
+                <>{this.renderTableRow(i)}</>
+            );
+        }
 
-
-  render () {
-    let html = []
-    for (let i = 1; i <= 100; i++) {
-        html.push(
-            <>{this.renderTableRow(i)}</>
-        );
-    }
-
-    return (
-
-        <div className='scroll-table'>
-            <Table striped bordered>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Twitter Name</th>
-                    <th>Tweet</th>
-                    <th>+ Sentiment</th>
-                    <th>- Sentiment</th>
-                </tr>
-                </thead>
-                <tbody>
-                {html}
-                </tbody>
-            </Table>
-        </div>
+        return (
+            <div className='scroll-table'>
+                <Table striped bordered>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Twitter Name</th>
+                        <th>Tweet</th>
+                        <th>+ Sentiment</th>
+                        <th>- Sentiment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {html}
+                    </tbody>
+                </Table>
+            </div>
         )
     }
 }
