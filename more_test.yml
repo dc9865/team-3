@@ -77,13 +77,3 @@ Resources:
       SubDomainSettings:
         - Prefix: main
           BranchName: !GetAtt AmplifyBranch.BranchName
-
-Outputs:
-  AmplifyAppId:
-    Value: !Ref AmplifyApp
-
-  DefaultDomain:
-    Value: !Sub main.${AmplifyApp.DefaultDomain}
-
-  BranchUrl:
-    Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}
