@@ -1,62 +1,89 @@
 AWSTemplateFormatVersion: 2010-09-09
-
+  
 Resources:
-  SentimentAPI:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      EndpointConfiguration:
-        Types:
-        - REGIONAL
-      Name: SentimentAPI
 
-  RestApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - SentimentAPI
-      - SentimentAnalysis
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
     Properties:
-      RestApiId: !Ref SentimentAPI
-      StageName: dev
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement: 
+        - Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'amplify.amazonaws.com'
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      Policies:
+        - PolicyName: Amplify
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+      RoleName: AmplifyRole
 
-  SentimentGatewayResource:
-    Type: AWS::ApiGateway::Resource
-    DependsOn:
-      - SentimentAPI
+  AmplifyApp:
+    Type: "AWS::Amplify::App"
     Properties:
-      ParentId: !GetAtt SentimentAPI.RootResourceId
-      PathPart: analysis
-      RestApiId: !Ref SentimentAPI
+      Name: "team-3-otterview-frontend"
+      Repository: "https://github.com/swen-514-614-spr-2023-2/team-3"
+      AccessToken: "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"
+      EnvironmentVariables:
+        - Name: "AMPLIFY_MONOREPO_APP_ROOT"
+          Value: "otterview-frontend"
+        - Name: "AMPLIFY_DIFF_DEPLOY"
+          Value: false
+        - Name: "_LIVE_UPDATES"
+          Value: '[{"name":"Amplify CLI","pkg":"@aws-amplify/cli","type":"npm","version":"latest"}]'
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+      BuildSpec: |-
+        "version: 1
+        applications:
+          - appRoot: team-3-otterview-frontend
+          - frontend:
+              phases:
+                preBuild:
+                  commands:
+                    - npm ci
+                build:
+                  commands:
+                    - npm run build
+              artifacts:
+                baseDirectory: build
+                files:
+                  - '**/*'
+              cache:
+                paths:
+                  - node_modules/**/*"
 
-  SentimentAnalysis:
-    Type: AWS::ApiGateway::Method
-    DependsOn:
-      - SentimentGatewayResource
-      - SentimentAPI
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
     Properties:
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      HttpMethod: GET
-      Integration:
-        IntegrationHttpMethod: GET
-        IntegrationResponses:
-          - StatusCode: '200'
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates:
-            application/json : '{"inputTranscript": "I want something"}'
-        Type: AWS
-        Uri:
-          !Join
-          - ''
-          - - 'arn:'
-            - !Ref AWS::Partition
-            - ':apigateway:'
-            - !Ref AWS::Region
-            - :lambda:path/2015-03-31/functions/
-            - arn:aws:lambda:us-east-1:204035748263:function:SentimentAnalysis
-            - /invocations
-      MethodResponses:
-        - ResponseModels:
-            application/json : Empty
-          StatusCode: '200'
-      ResourceId: !Ref SentimentGatewayResource
-      RestApiId: !Ref SentimentAPI
+      AppId: !GetAtt AmplifyApp.AppId
+      BranchName: main
+      EnableAutoBuild: true
+      Stage: PRODUCTION
+
+  AmplifyDomain:
+    Type: AWS::Amplify::Domain
+    Properties:
+      DomainName: "otterview.com"
+      AppId: !GetAtt AmplifyApp.AppId
+      SubDomainSettings:
+        - Prefix: main
+          BranchName: !GetAtt AmplifyBranch.BranchName
+
+Outputs:
+  AmplifyAppId:
+    Value: !Ref AmplifyApp
+
+  DefaultDomain:
+    Value: !Sub main.${AmplifyApp.DefaultDomain}
+
+  BranchUrl:
+    Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}

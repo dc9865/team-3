@@ -14,8 +14,16 @@ Resources:
               - 'amplify.amazonaws.com'
           Action:
             - 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      # ManagedPolicyArns:
+      #   - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      Policies:
+        - PolicyName: Amplify
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
       RoleName: AmplifyRole
 
   Amplify:
@@ -29,8 +37,10 @@ Resources:
           Value: "otterview-frontend"
         - Name: "AMPLIFY_DIFF_DEPLOY"
           Value: false
+        - Name: "_LIVE_UPDATES"
+          Value: '[{"name":"Amplify CLI","pkg":"@aws-amplify/cli","type":"npm","version":"latest"}]'
       IAMServiceRole: !GetAtt AmplifyRole.Arn
-      AccessToken: "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"
+      AccessToken: "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"
       AutoBranchCreationConfig:
         EnableAutoBuild: True
         BuildSpec:
@@ -53,4 +63,10 @@ Resources:
                     - node_modules/**/*
               appRoot: otterview-frontend"
 
-      
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties: 
+      AppId: !GetAtt Amplify.AppId
+      BranchName: Master
+      EnableAutoBuild: true
+      Stage: "DEVELOPMENT"
