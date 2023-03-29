@@ -32,34 +32,71 @@ Resources:
           import boto3
           import json
           import os
+          import logging
           from io import StringIO
-          
+
           comprehend = boto3.client('comprehend')
           dynamodb = boto3.client('dynamodb')
-          
+
           def lambda_handler(event, context):
+              
+              number_of_comments = 0
+              number_of_positive = 0
+              number_of_negative = 0
+              
               for record in event['Records']:
                   key = record['s3']['object']['key']
                   obj = boto3.client('s3').get_object(Bucket=record['s3']['bucket']['name'], Key=key)
                   comments = obj['Body'].read().decode('utf-8').splitlines()
+                  comments.pop(0) #Remove header
                   for comment in comments:
+                      #Split up strinf for id, timestamp, and comment
                       id, timestamp, comment_text = comment.split(',', 2)
+                      
+                      # AWS Comprhend Sentiment Analysis 
                       sentiment = comprehend.detect_sentiment(Text=comment_text, LanguageCode='en')
+                      positive = str(sentiment['SentimentScore']['Positive'])
+                      negative = str(sentiment['SentimentScore']['Negative'])
+                      
+                      #Sentiment Additions
+                      if float(positive) > float(negative):
+                          number_of_positive += 1
+                      else: 
+                          number_of_negative += 1
+                      
+                      #Update Database with comment
                       dynamodb.put_item(
-                          TableName=os.environ['TABLE_NAME'],
+                          TableName= 'ov-database',
                           Item={
-                              'id': {'S': id},
-                              'Comment': {'S': comment_text},
-                              'PositiveSentiment': {'N': str(sentiment['SentimentScore']['Positive'])},
-                              'NegativeSentiment': {'N': str(sentiment['SentimentScore']['Negative'])}
+                              'id': {'N': id},
+                              'Comment': {'S': comment_text}, 
+                              'PositiveSentiment': {'N': positive},
+                              'NegativeSentiment': {'N': negative}
                           }
                       )
+                      
+                      number_of_comments += 1
+                  
+                  #Calculate postive and negative percentage
+                  positive_percentage = round(((number_of_positive/number_of_comments) * 100), 2)
+                  negative_percentage = round(((number_of_negative/number_of_comments) * 100), 2)
+                  
+                  #Generate Response
+                  response = '\nSentiment Analysis Completed for Event.\nTotal Comments Gathered: {}\nTotal Positive Comments: {} ({}%)\nTotal Negative Comments: {}({}%)'.format(number_of_comments, number_of_positive,positive_percentage, number_of_negative, negative_percentage )
+                  logger = logging.getLogger()
+                  logger.setLevel(logging.INFO)
+                  logger.info(response)
+                  
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps(response)
+              }
 
       Environment:
         Variables:
           TABLE_NAME: !Ref OVDatabase
           BUCKET_NAME: !Ref OVDataBucket
-      Timeout: 60
+      Timeout: 300
       MemorySize: 256
       TracingConfig:
         Mode: Active
