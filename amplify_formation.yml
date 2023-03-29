@@ -1,0 +1,29 @@
+Resources:
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement: 
+        - Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'amplify.amazonaws.com'
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      RoleName: AmplifyRole
+
+  Amplify:
+    Type: AWS::Amplify::App
+    DeletionPolicy: Delete
+    Properties:
+      Repository: "swen-514-614-spr-2023-2/team-3"
+      Name: "team-3-otterview-frontend"
+      EnvironmentVariables:
+        - AMPLIFY_MONOREPO_APP_ROOT:otterview-frontend
+        - AMPLIFY_DIFF_DEPLOY:false
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+      
