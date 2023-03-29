@@ -19,17 +19,6 @@ Resources:
         - 'arn:aws:iam::aws:policy/ComprehendFullAccess'
         - 'arn:aws:iam::aws:policy/service-role/ComprehendDataAccessRolePolicy'
         - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
-      Policies:
-      - PolicyName: AppendToLogsPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource: "*"
       RoleName: LambdaRole
 
   SentimentFunction:
@@ -147,7 +136,7 @@ Resources:
       Name: custom_auth
 
   GWAuthPermission:
-    Type: "AWS::Lambda::Permission"
+    Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt SentimentFunction.Arn
