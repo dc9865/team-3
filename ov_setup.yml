@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  OVDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ov-data-bucket
+  
+  OVDatabase:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ov-database
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:  5
+        WriteCapacityUnits: 5
+  
+  OVLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ov-lambda-function
+      Runtime: python3.9
+      Handler: index.lambda_handler
+      Role: !GetAtt OVIAMRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+          import os
+          from io import StringIO
+          
+          comprehend = boto3.client('comprehend')
+          dynamodb = boto3.client('dynamodb')
+          
+          def lambda_handler(event, context):
+              for record in event['Records']:
+                  key = record['s3']['object']['key']
+                  obj = boto3.client('s3').get_object(Bucket=record['s3']['bucket']['name'], Key=key)
+                  comments = obj['Body'].read().decode('utf-8').splitlines()
+                  for comment in comments:
+                      id, timestamp, comment_text = comment.split(',', 2)
+                      sentiment = comprehend.detect_sentiment(Text=comment_text, LanguageCode='en')
+                      dynamodb.put_item(
+                          TableName=os.environ['TABLE_NAME'],
+                          Item={
+                              'id': {'S': id},
+                              'Comment': {'S': comment_text},
+                              'PositiveSentiment': {'N': str(sentiment['SentimentScore']['Positive'])},
+                              'NegativeSentiment': {'N': str(sentiment['SentimentScore']['Negative'])}
+                          }
+                      )
+
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OVDatabase
+          BUCKET_NAME: !Ref OVDataBucket
+      Timeout: 60
+      MemorySize: 256
+      TracingConfig:
+        Mode: Active
+
+
+
+  OVIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ov-lambda-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ov-lambda-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${OVDataBucket}'
+                  - !Sub 'arn:aws:s3:::${OVDataBucket}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource:
+                  - !GetAtt OVDatabase.Arn
+              - Effect: Allow
+                Action:
+                  - comprehend:DetectSentiment
+                Resource: '*'
+  
+  
+
