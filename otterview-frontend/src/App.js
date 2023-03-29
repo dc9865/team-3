@@ -22,21 +22,26 @@ class App extends Component {
         }
 
         return (
-            <div className='scroll-table'>
-                <Table striped bordered>
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Twitter Name</th>
-                        <th>Tweet</th>
-                        <th>+ Sentiment</th>
-                        <th>- Sentiment</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {html}
-                    </tbody>
-                </Table>
+            <div>
+                <h1 className='page-head'>Otterview</h1>
+                <h5 className='page-head'>An event sentiment analysis system.</h5>    
+
+                <div className='scroll-table'>
+                    <Table striped bordered>
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Twitter Name</th>
+                            <th>Tweet</th>
+                            <th style={{color: "green"}}>(+) Sentiment</th>
+                            <th style={{color: "red"}}>(-) Sentiment</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {html}
+                        </tbody>
+                    </Table>
+                </div>
             </div>
         )
     }
