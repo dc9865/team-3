@@ -1,6 +1,7 @@
-#IN PROGRESS
-
+AWSTemplateFormatVersion: 2010-09-09
+  
 Resources:
+
   AmplifyRole:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete
@@ -14,8 +15,8 @@ Resources:
               - 'amplify.amazonaws.com'
           Action:
             - 'sts:AssumeRole'
-      # ManagedPolicyArns:
-      #   - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
       Policies:
         - PolicyName: Amplify
           PolicyDocument:
@@ -27,11 +28,11 @@ Resources:
       RoleName: AmplifyRole
 
   Amplify:
-    Type: AWS::Amplify::App
-    DeletionPolicy: Delete
+    Type: "AWS::Amplify::App"
     Properties:
-      Repository: "https://github.com/swen-514-614-spr-2023-2/team-3"
       Name: "team-3-otterview-frontend"
+      Repository: "https://github.com/swen-514-614-spr-2023-2/team-3"
+      AccessToken: "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"
       EnvironmentVariables:
         - Name: "AMPLIFY_MONOREPO_APP_ROOT"
           Value: "otterview-frontend"
@@ -40,33 +41,30 @@ Resources:
         - Name: "_LIVE_UPDATES"
           Value: '[{"name":"Amplify CLI","pkg":"@aws-amplify/cli","type":"npm","version":"latest"}]'
       IAMServiceRole: !GetAtt AmplifyRole.Arn
-      AccessToken: "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"
-      AutoBranchCreationConfig:
-        EnableAutoBuild: True
-        BuildSpec:
-          "version: 1
-          applications:
-            - frontend:
-                phases:
-                  preBuild:
-                    commands:
-                      - npm ci
-                  build:
-                    commands:
-                      - npm run build
-                artifacts:
-                  baseDirectory: build
-                  files:
-                    - '**/*'
-                cache:
-                  paths:
-                    - node_modules/**/*
-              appRoot: otterview-frontend"
 
   AmplifyBranch:
     Type: AWS::Amplify::Branch
-    Properties: 
+    Properties:
       AppId: !GetAtt Amplify.AppId
-      BranchName: Master
+      BranchName: main
       EnableAutoBuild: true
-      Stage: "DEVELOPMENT"
+      Stage: PRODUCTION
+
+  AmplifyDomain:
+    Type: AWS::Amplify::Domain
+    Properties:
+      DomainName: "otterview.com"
+      AppId: !GetAtt Amplify.AppId
+      SubDomainSettings:
+        - Prefix: main
+          BranchName: !GetAtt AmplifyBranch.BranchName
+
+Outputs:
+  AmplifyAppId:
+    Value: !Ref Amplify
+
+  DefaultDomain:
+    Value: !Sub main.${Amplify.DefaultDomain}
+
+  BranchUrl:
+    Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}
