@@ -1,3 +1,5 @@
+#IN PROGRESS
+
 Resources:
   AmplifyRole:
     Type: AWS::IAM::Role
@@ -20,10 +22,35 @@ Resources:
     Type: AWS::Amplify::App
     DeletionPolicy: Delete
     Properties:
-      Repository: "swen-514-614-spr-2023-2/team-3"
+      Repository: "https://github.com/swen-514-614-spr-2023-2/team-3"
       Name: "team-3-otterview-frontend"
       EnvironmentVariables:
-        - AMPLIFY_MONOREPO_APP_ROOT:otterview-frontend
-        - AMPLIFY_DIFF_DEPLOY:false
+        - Name: "AMPLIFY_MONOREPO_APP_ROOT"
+          Value: "otterview-frontend"
+        - Name: "AMPLIFY_DIFF_DEPLOY"
+          Value: false
       IAMServiceRole: !GetAtt AmplifyRole.Arn
+      AccessToken: "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"
+      AutoBranchCreationConfig:
+        EnableAutoBuild: True
+        BuildSpec:
+          "version: 1
+          applications:
+            - frontend:
+                phases:
+                  preBuild:
+                    commands:
+                      - npm ci
+                  build:
+                    commands:
+                      - npm run build
+                artifacts:
+                  baseDirectory: build
+                  files:
+                    - '**/*'
+                cache:
+                  paths:
+                    - node_modules/**/*
+              appRoot: otterview-frontend"
+
       
