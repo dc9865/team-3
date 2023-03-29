@@ -27,7 +27,7 @@ Resources:
                 Resource: '*'
       RoleName: AmplifyRole
 
-  AmplifyApp:
+  Amplify:
     Type: "AWS::Amplify::App"
     Properties:
       Name: "team-3-otterview-frontend"
@@ -64,7 +64,7 @@ Resources:
   AmplifyBranch:
     Type: AWS::Amplify::Branch
     Properties:
-      AppId: !GetAtt AmplifyApp.AppId
+      AppId: !GetAtt Amplify.AppId
       BranchName: main
       EnableAutoBuild: true
       Stage: PRODUCTION
@@ -73,7 +73,17 @@ Resources:
     Type: AWS::Amplify::Domain
     Properties:
       DomainName: "otterview.com"
-      AppId: !GetAtt AmplifyApp.AppId
+      AppId: !GetAtt Amplify.AppId
       SubDomainSettings:
         - Prefix: main
           BranchName: !GetAtt AmplifyBranch.BranchName
+
+Outputs:
+  AmplifyAppId:
+    Value: !Ref Amplify
+
+  DefaultDomain:
+    Value: !Sub main.${Amplify.DefaultDomain}
+
+  BranchUrl:
+    Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}

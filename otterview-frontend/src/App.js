@@ -2,7 +2,6 @@ import './App.css';
 import {Table} from 'reactstrap';
 import React, {Component} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-# test
 
 class App extends Component {
 
