@@ -1,7 +1,10 @@
 import './App.css';
-import {Table} from 'reactstrap';
+import {Col, Row, Table} from 'reactstrap';
 import React, {Component} from 'react';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import ScaleText from "react-scale-text";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-circular-progressbar/dist/styles.css';
 
 class App extends Component {
     renderTableRow(i, tweetPost) {
@@ -13,6 +16,12 @@ class App extends Component {
                 posSent = {tweetPost[2]}
                 negSent = {tweetPost[3]}
             />
+        )
+    }
+
+    renderGradeCircle() {
+        return (
+            <GradeCircle/>
         )
     }
 
@@ -40,22 +49,25 @@ class App extends Component {
                 <h1 className='page-head'>Otterview</h1>
                 <h5 className='page-head'>An event sentiment analysis system.</h5>    
 
-                <div className='scroll-table'>
-                    <Table striped bordered>
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Twitter Name</th>
-                            <th>Tweet</th>
-                            <th style={{color: "green"}}>(+) Sentiment</th>
-                            <th style={{color: "red"}}>(-) Sentiment</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {html}
-                        </tbody>
-                    </Table>
-                </div>
+                <Row>
+                    <Col className='scroll-table'>
+                        <Table striped bordered>
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Twitter Name</th>
+                                <th>Tweet</th>
+                                <th style={{color: "green"}}>(+) Sentiment</th>
+                                <th style={{color: "red"}}>(-) Sentiment</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {html}
+                            </tbody>
+                        </Table>
+                    </Col>
+                    {this.renderGradeCircle()}
+                </Row>
             </div>
         )
     }
@@ -77,6 +89,24 @@ class TableRow extends Component {
                 <td>{posSent}</td>
                 <td>{negSent}</td>
             </tr>
+        )
+    }
+}
+
+class GradeCircle extends Component {
+    render() {
+        let grade = "A";
+        let percentage = 30
+        let numComments = 4500000
+
+        return (
+            <Col>
+                <CircularProgressbar value={30}  className='grade-circle' 
+                
+                text={
+                    `Event Grade: ${grade}`
+                    }/>
+            </Col>
         )
     }
 }
