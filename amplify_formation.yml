@@ -1,7 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
   
 Resources:
-
   AmplifyRole:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete

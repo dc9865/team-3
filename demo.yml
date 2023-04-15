@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  OVDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ov-data-bucket
+  
+  OVDatabase:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ov-database
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:  5
+        WriteCapacityUnits: 5
+  
+  OVLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ov-lambda-function
+      Runtime: python3.9
+      Handler: index.lambda_handler
+      Role: !GetAtt OVIAMRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+          import os
+          import logging
+          from io import StringIO
+
+          comprehend = boto3.client('comprehend')
+          dynamodb = boto3.client('dynamodb')
+
+          def lambda_handler(event, context):
+              
+              number_of_comments = 0
+              number_of_positive = 0
+              number_of_negative = 0
+              
+              for record in event['Records']:
+                  key = record['s3']['object']['key']
+                  obj = boto3.client('s3').get_object(Bucket=record['s3']['bucket']['name'], Key=key)
+                  comments = obj['Body'].read().decode('utf-8').splitlines()
+                  comments.pop(0) #Remove header
+                  for comment in comments:
+                      #Split up strinf for id, timestamp, and comment
+                      id, timestamp, comment_text = comment.split(',', 2)
+                      
+                      # AWS Comprhend Sentiment Analysis 
+                      sentiment = comprehend.detect_sentiment(Text=comment_text, LanguageCode='en')
+                      positive = str(sentiment['SentimentScore']['Positive'])
+                      negative = str(sentiment['SentimentScore']['Negative'])
+                      
+                      #Sentiment Additions
+                      if float(positive) > float(negative):
+                          number_of_positive += 1
+                      else: 
+                          number_of_negative += 1
+                      
+                      #Update Database with comment
+                      dynamodb.put_item(
+                          TableName= 'ov-database',
+                          Item={
+                              'id': {'N': id},
+                              'Comment': {'S': comment_text}, 
+                              'PositiveSentiment': {'N': positive},
+                              'NegativeSentiment': {'N': negative}
+                          }
+                      )
+                      
+                      number_of_comments += 1
+                  
+                  #Calculate postive and negative percentage
+                  positive_percentage = round(((number_of_positive/number_of_comments) * 100), 2)
+                  negative_percentage = round(((number_of_negative/number_of_comments) * 100), 2)
+                  
+                  #Generate Response
+                  response = '\nSentiment Analysis Completed for Event.\nTotal Comments Gathered: {}\nTotal Positive Comments: {} ({}%)\nTotal Negative Comments: {}({}%)'.format(number_of_comments, number_of_positive,positive_percentage, number_of_negative, negative_percentage )
+                  logger = logging.getLogger()
+                  logger.setLevel(logging.INFO)
+                  logger.info(response)
+                  
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps(response)
+              }
+
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OVDatabase
+          BUCKET_NAME: !Ref OVDataBucket
+      Timeout: 300
+      MemorySize: 256
+      TracingConfig:
+        Mode: Active
+
+  OVIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ov-lambda-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ov-lambda-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${OVDataBucket}'
+                  - !Sub 'arn:aws:s3:::${OVDataBucket}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource:
+                  - !GetAtt OVDatabase.Arn
+              - Effect: Allow
+                Action:
+                  - comprehend:DetectSentiment
+                Resource: '*'
+
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement: 
+        - Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'amplify.amazonaws.com'
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess-Amplify'
+      Policies:
+        - PolicyName: Amplify
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+      RoleName: AmplifyRole
+
+  Amplify:
+    Type: "AWS::Amplify::App"
+    Properties:
+      Name: "team-3-otterview-frontend"
+      Repository: "https://github.com/swen-514-614-spr-2023-2/team-3"
+      AccessToken: "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"
+      EnvironmentVariables:
+        - Name: "AMPLIFY_MONOREPO_APP_ROOT"
+          Value: "otterview-frontend"
+        - Name: "AMPLIFY_DIFF_DEPLOY"
+          Value: false
+        - Name: "_LIVE_UPDATES"
+          Value: '[{"name":"Amplify CLI","pkg":"@aws-amplify/cli","type":"npm","version":"latest"}]'
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt Amplify.AppId
+      BranchName: main
+      EnableAutoBuild: true
+      Stage: PRODUCTION
+
+  AmplifyDomain:
+    Type: AWS::Amplify::Domain
+    Properties:
+      DomainName: "otterview.com"
+      AppId: !GetAtt Amplify.AppId
+      SubDomainSettings:
+        - Prefix: main
+          BranchName: !GetAtt AmplifyBranch.BranchName
+
+Outputs:
+  AmplifyAppId:
+    Value: !Ref Amplify
+
+  DefaultDomain:
+    Value: !Sub main.${Amplify.DefaultDomain}
+
+  BranchUrl:
+    Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}
