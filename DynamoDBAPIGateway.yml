@@ -1,0 +1,86 @@
+Resources:
+  # Define the API Gateway
+  MyApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: MyOVDBAPI
+
+  # Define the "/tweets" resource
+  TweetsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      PathPart: tweets
+
+  # Define the "/tweets/{tweetID}" resource
+  TweetByIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      ParentId: !GetAtt TweetsResource.Id
+      PathPart: "{tweetID}"
+
+  # Define the GET method for "/tweets" resource
+  GetTweetsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      ResourceId: !Ref TweetsResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: GET
+        Uri: "arn:aws:apigateway:{us-east-1}:dynamodb:action/GetItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.tweetID: "method.request.querystring.tweetID"
+        RequestTemplates:
+          application/json: '{"TableName": "MyTable","Key": {"tweetID": "$input.params(''tweetID'')"}}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: ' '
+    DependsOn:
+      - DynamoDBFullAccessRole
+
+  # Define the GET method for "/tweets/{tweetID}" resource
+  GetTweetByIdMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      ResourceId: !Ref TweetByIdResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: GET
+        Uri: "arn:aws:apigateway:{us-east-1}:dynamodb:action/GetItem"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.tweetID: "method.request.path.tweetID"
+        RequestTemplates:
+          application/json: '{"TableName": "MyTable","Key": {"tweetID": "$input.params(''tweetID'')"}}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseTemplates:
+              application/json: ' '
+    DependsOn:
+      - DynamoDBFullAccessRole
+
+  DynamoDBFullAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "dynamodb-full-access-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
