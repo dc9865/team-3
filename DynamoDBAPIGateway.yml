@@ -2,6 +2,7 @@ Resources:
   # Define the API Gateway
   MyApiGateway:
     Type: AWS::ApiGateway::RestApi
+    DependsOn: DynamoDBFullAccessRole
     Properties:
       Name: MyOVDBAPI
 
@@ -10,6 +11,9 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref MyApiGateway
+      ParentId: !GetAtt
+       - MyApiGateway 
+       - RootResourceId
       PathPart: tweets
 
   # Define the "/tweets/{tweetID}" resource
@@ -31,20 +35,22 @@ Resources:
       Integration:
         Type: AWS
         IntegrationHttpMethod: GET
-        Uri: "arn:aws:apigateway:{us-east-1}:dynamodb:action/GetItem"
+        Uri: !Sub "arn:aws:apigateway:{us-east-1}:dynamodb:action/GetItem"
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestParameters:
           integration.request.querystring.tweetID: "method.request.querystring.tweetID"
         RequestTemplates:
           application/json: '{"TableName": "MyTable","Key": {"tweetID": "$input.params(''tweetID'')"}}'
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseTemplates:
-              application/json: ' '
-    DependsOn:
-      - DynamoDBFullAccessRole
+        MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseTemplates:
+            application/json: $input.json('$')
 
-  # Define the GET method for "/tweets/{tweetID}" resource
+ # Define the GET method for "/tweets/{tweetID}" resource
   GetTweetByIdMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -54,24 +60,33 @@ Resources:
       AuthorizationType: NONE
       Integration:
         Type: AWS
-        IntegrationHttpMethod: GET
-        Uri: "arn:aws:apigateway:{us-east-1}:dynamodb:action/GetItem"
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.querystring.tweetID: "method.request.path.tweetID"
-        RequestTemplates:
-          application/json: '{"TableName": "MyTable","Key": {"tweetID": "$input.params(''tweetID'')"}}'
         IntegrationResponses:
-          - StatusCode: "200"
-            ResponseTemplates:
-              application/json: ' '
-    DependsOn:
-      - DynamoDBFullAccessRole
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
 
+  Deployment:
+    DependsOn: [GetTweetsMethod, GetTweetByIdMethod]
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      Description: My deployment
+      StageName: Prod
+
+  # Define the IAM Role for DynamoDB Full Access
   DynamoDBFullAccessRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "dynamodb-full-access-role"
+      RoleName: "DynamoDBFullAccessRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -82,5 +97,17 @@ Resources:
             Action:
               - "sts:AssumeRole"
       Path: "/"
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+      Policies:
+        - PolicyName: "DynamoDBFullAccessPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "dynamodb:*"
+                Resource: "*"
+
+Outputs:
+  # Output the API Gateway endpoint URL
+  ApiGatewayEndpoint:
+    Value: !Sub 'https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/tweets/{tweetID}'
