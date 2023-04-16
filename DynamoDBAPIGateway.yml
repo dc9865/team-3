@@ -4,27 +4,28 @@ Resources:
     Type: AWS::ApiGateway::RestApi
     DependsOn: DynamoDBFullAccessRole
     Properties:
-      Name: MyOVDBAPI
+      Name: OtterviewAPI
 
   # Configure CORS for the API Gateway
-  MyApiGatewayCors:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      RestApiId: !Ref MyApiGateway
-      Cors:
-        AllowOrigins:
-          - "'*'"
-        AllowHeaders:
-          - "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowMethods:
-          - "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+  # MyApiGatewayCors:
+  #   Type: AWS::ApiGateway::RestApi
+  #   Properties:
+  #     Name: OtterviewGateway
+  #     RestApiId: !Ref MyApiGateway
+  #     Cors:
+  #       AllowOrigins:
+  #         - "'*'"
+  #       AllowHeaders:
+  #         - "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  #       AllowMethods:
+  #         - "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
 
   # Define the "/tweets" resource
   TweetsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref MyApiGateway
-      ParentId: !GetAtt [MyApiGateway, RootResourceId]
+      ParentId: !GetAtt MyApiGateway.RootResourceId
       PathPart: tweets
 
   # Define the "/tweets/{tweetID}" resource
@@ -32,7 +33,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref MyApiGateway
-      ParentId: !GetAtt [TweetsResource, ResourceId]
+      ParentId: !GetAtt TweetsResource.ResourceId
       PathPart: "{tweetID}"
 
   # Define the GET method for "/tweets" resource
@@ -62,28 +63,29 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
+        Credentials: !GetAtt DynamoDBFullAccessRole.Arn
         IntegrationResponses:
-        - StatusCode: 200
+        - ResponseTemplates:
+            application/json: ''
+          StatusCode: 200
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
             method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
             method.response.header.Access-Control-Allow-Origin: "'*'"
-          ResponseTemplates:
-            application/json: ''
-          PassthroughBehavior: WHEN_NO_MATCH
-          RequestTemplates:
-            application/json: '{"statusCode": 200}'
-          Type: AWS
-        MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
-
-
+        IntegrationHttpMethod: GET
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: AWS
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem
+      MethodResponses:
+      - StatusCode: 200
+        ResponseModels:
+          application/json: 'Empty'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: false
+          method.response.header.Access-Control-Allow-Methods: false
+          method.response.header.Access-Control-Allow-Origin: false
 
   Deployment:
     DependsOn: [GetTweetsMethod, GetTweetByIdMethod]
