@@ -8,7 +8,7 @@ import 'react-circular-progressbar/dist/styles.css';
 class App extends Component {
     constructor(props){
         super(props);
-        this.state={data: ""}
+        this.state={data: []}
     }
 
     updateData = (apiResponse) => {
@@ -44,11 +44,11 @@ class App extends Component {
     }
 
     render () {
-        let tweets = this.state.data
+        let tweets = this.state.data.body
         
         return (
             <div className='height-setter'>
-                <h1 className='page-head'>OtterView</h1>
+                <h1 className='page-head'>OtterView {tweets}</h1>
                 <h5 className='page-head'>An event sentiment analysis system.</h5>    
 
                 <Row>
