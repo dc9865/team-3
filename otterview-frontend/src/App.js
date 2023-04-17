@@ -162,7 +162,7 @@ class GradeCircle extends Component {
 
     render() {
         let percentage = 60
-        let numComments = 4500000
+        let numComments = 10
 
         let grade = this.calculateGrade(percentage)
 
