@@ -8,7 +8,7 @@ import 'react-circular-progressbar/dist/styles.css';
 class App extends Component {
     constructor(props){
         super(props);
-        this.state={data: []}
+        this.state={data: ""}
     }
 
     updateData = (apiResponse) => {
@@ -46,7 +46,7 @@ class App extends Component {
     }
 
     render () {
-        let tweets = this.state.data.body
+        let tweets = this.state.data
         
         return (
             <div className='height-setter'>
@@ -68,8 +68,8 @@ class TableHalf extends Component {
             <TableRow
                 id = {tweetPost[0]}
                 tweet = {tweetPost[1]}
-                posSent = {tweetPost[2]}
-                negSent = {tweetPost[3]}
+                posSent = {tweetPost[3]}
+                negSent = {tweetPost[2]}
             />
         )
     }
@@ -91,7 +91,7 @@ class TableHalf extends Component {
 
         let html = []
 
-        for (let i = 0; i < mockData; i++) {
+        for (let i = 0; i < mockData.length; i++) {
             html.push(
                 <>{this.renderTableRow(mockData[i])}</>
             );
