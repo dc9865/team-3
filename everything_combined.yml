@@ -4,6 +4,9 @@ Parameters:
   OVDataBucketName:
     Type: String
     Default: otterview-data-bucket
+  OVWebsiteName:
+    Type: String
+    Default: otterview.com
   
 Resources:
   AmplifyRole:
@@ -57,7 +60,7 @@ Resources:
   AmplifyDomain:
     Type: AWS::Amplify::Domain
     Properties:
-      DomainName: "otterviewtest.com"
+      DomainName: !Ref OVWebsiteName
       AppId: !GetAtt Amplify.AppId
       SubDomainSettings:
         - Prefix: main
