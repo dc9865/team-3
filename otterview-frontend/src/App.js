@@ -8,7 +8,7 @@ import 'react-circular-progressbar/dist/styles.css';
 class App extends Component {
     constructor(props){
         super(props);
-        this.state={data: []}
+        this.state={}
     }
 
     updateData = (apiResponse) => {
@@ -66,10 +66,10 @@ class TableHalf extends Component {
     renderTableRow(tweetPost) {
         return (
             <TableRow
-                id = {tweetPost[0]}
-                tweet = {tweetPost[1]}
-                posSent = {tweetPost[2]}
-                negSent = {tweetPost[3]}
+                id = {tweetPost}
+                tweet = {tweetPost}
+                posSent = {tweetPost}
+                negSent = {tweetPost}
             />
         )
     }
