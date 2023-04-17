@@ -95,7 +95,7 @@ class TableHalf extends Component {
 
         for (let i = 0; i < mockData; i++) {
             html.push(
-                <>{this.renderTableRow(mockData[i])}</>
+                <>{this.renderTableRow(mockData)}</>
             );
         }
 
