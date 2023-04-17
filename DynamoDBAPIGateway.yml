@@ -53,6 +53,8 @@ Resources:
         IntegrationHttpMethod: GET
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem
         Credentials: !GetAtt DynamoDBFullAccessRole.Arn
+        RequestParameters:
+          integration.request.querystring.TableName: "'ov-database'"
 
   # Define the GET method for "/tweets/{tweetID}" resource
   GetTweetByIdMethod:
@@ -65,9 +67,7 @@ Resources:
       Integration:
         Credentials: !GetAtt DynamoDBFullAccessRole.Arn
         IntegrationResponses:
-        - ResponseTemplates:
-            application/json: ''
-          StatusCode: 200
+        - StatusCode: 200
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
             method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
@@ -78,6 +78,8 @@ Resources:
           application/json: '{"statusCode": 200}'
         Type: AWS
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem
+        RequestParameters:
+          integration.request.querystring.TableName: "'ov-database'"
       MethodResponses:
       - StatusCode: 200
         ResponseModels:
@@ -86,6 +88,7 @@ Resources:
           method.response.header.Access-Control-Allow-Headers: false
           method.response.header.Access-Control-Allow-Methods: false
           method.response.header.Access-Control-Allow-Origin: false
+
 
   Deployment:
     DependsOn: [GetTweetsMethod, GetTweetByIdMethod]
@@ -114,7 +117,7 @@ Resources:
         - PolicyName: "DynamoDBFullAccessPolicy"
           PolicyDocument:
             Version: "2012-10-17"
-            Statement: 
+            Statement:
               - Effect: "Allow"
                 Action:
                   - "dynamodb:*"
