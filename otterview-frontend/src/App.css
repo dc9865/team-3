@@ -14,19 +14,31 @@
       color: black;
 }
 
-.scroll-table {
-    max-height: '200px';
-    overflow-y: 'auto';
-    text-size-adjust: '50';
-}
-
 .page-head {
     text-align: center;
     font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.grade-circle {
-    text-align: center;
-    font-size: 12px;
-    font-family: Georgia, 'Times New Roman', Times, serif;
+.my-custom-scrollbar {
+    position: relative;
+    height: 90vh;
+    overflow: auto;
 }
+
+.table-wrapper-scroll-y {
+    display: block;
+}
+
+.height-setter {
+    width: fit-content;
+    margin: auto;
+}
+
+.red-color {
+    color: red
+}
+
+.red-color {
+    color: green
+}
+    

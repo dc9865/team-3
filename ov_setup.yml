@@ -4,7 +4,7 @@ Resources:
   OVDataBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: ov-data-bucket
+      BucketName: ov-data-bucket-thing
   
   OVDatabase:
     Type: AWS::DynamoDB::Table
