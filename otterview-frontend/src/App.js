@@ -31,6 +31,7 @@ class App extends Component {
         this.fetchData();
     }
 
+    /*
     renderGradeCircle() {
         return (
             <GradeCircle/>
@@ -44,10 +45,11 @@ class App extends Component {
             />
         )
     }
+    */
 
     render () {
 
-        let tweets = this.state.data
+        //let tweets = this.state.data
         
         return (
             <div className='height-setter'>
@@ -55,8 +57,7 @@ class App extends Component {
                 <h5 className='page-head'>An event sentiment analysis system.</h5>    
 
                 <Row>
-                    {this.state}
-                    
+                    {this.state.data}
                 </Row>
             </div>
         )
