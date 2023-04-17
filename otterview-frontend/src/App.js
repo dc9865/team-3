@@ -46,7 +46,8 @@ class App extends Component {
     }
 
     render () {
-        let tweets = this.state.data.body
+
+        let tweets = this.state.data
         
         return (
             <div className='height-setter'>
