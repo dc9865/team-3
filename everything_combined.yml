@@ -26,7 +26,7 @@ Parameters:
 Resources:
 
   ###################################################################################
-  #################################### FRONT END ####################################
+  ###################################### VIEW #######################################
   ###################################################################################
 
   AmplifyRole:
@@ -205,7 +205,7 @@ Resources:
           PolicyName: lambda
 
   ###################################################################################
-  #################################### BACK END #####################################
+  ##################################### MODEL #######################################
   ###################################################################################
 
   OVDataBucket:
@@ -370,7 +370,7 @@ Outputs:
     Value: !Ref Amplify
 
   ApiGatewayInvokeURL:
-    Value: !Sub https://otterview.${AWS::Region}.amazonaws.com/${OtterviewAPIStageName}
+    Value: !Sub https://${OtterviewAPI}.execute-api.${AWS::Region}.amazonaws.com/${OtterviewAPIStageName}
 
   BranchUrl:
     Value: !Sub ${AmplifyBranch.BranchName}.${AmplifyDomain.DomainName}
