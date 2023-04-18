@@ -93,7 +93,6 @@ Resources:
   OtterviewAPI:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Description: Example API Gateway
       EndpointConfiguration:
         Types:
           - REGIONAL
