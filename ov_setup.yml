@@ -1,27 +1,46 @@
 AWSTemplateFormatVersion: 2010-09-09
 
+Parameters:
+  OVDataBucketName:
+    Type: String
+    Default: otterview-data-bucket
+
 Resources:
   OVDataBucket:
     Type: AWS::S3::Bucket
+    DependsOn: S3TriggerPermission
     Properties:
+      BucketName: !Ref OVDataBucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: txt
+            Function: !GetAtt OVLambdaFunction.Arn
+
+  S3TriggerPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: OVLambdaFunction
       BucketName: ov-data-bucket-thing
   
   OVDatabase:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ov-database
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: N
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits:  5
-        WriteCapacityUnits: 5
-  
+      FunctionName:
+        Fn::GetAtt:
+          - OVLambdaFunction
+          - Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:s3:::${OVDataBucketName}
+
   OVLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn: OVIAMRole
     Properties:
       FunctionName: ov-lambda-function
       Runtime: python3.9
@@ -91,20 +110,32 @@ Resources:
                   'statusCode': 200,
                   'body': json.dumps(response)
               }
-
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref OVDatabase
-          BUCKET_NAME: !Ref OVDataBucket
-      Timeout: 300
-      MemorySize: 256
-      TracingConfig:
-        Mode: Active
-
-
+  
+  OVDatabase:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ov-database
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:  5
+        WriteCapacityUnits: 5
+      # Environment:
+      #   Variables:
+      #     TABLE_NAME: ov-database
+      #     BUCKET_NAME: !Ref OVDataBucketName
+      # Timeout: 300
+      # MemorySize: 256
+      # TracingConfig:
+      #   Mode: Active
 
   OVIAMRole:
     Type: AWS::IAM::Role
+    DependsOn: OVDatabase
     Properties:
       RoleName: ov-lambda-role
       AssumeRolePolicyDocument:
@@ -132,8 +163,8 @@ Resources:
                   - s3:ListBucket
                   - s3:PutObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${OVDataBucket}'
-                  - !Sub 'arn:aws:s3:::${OVDataBucket}/*'
+                  - !Sub 'arn:aws:s3:::${OVDataBucketName}'
+                  - !Sub 'arn:aws:s3:::${OVDataBucketName}/*'
               - Effect: Allow
                 Action:
                   - dynamodb:PutItem
@@ -143,6 +174,3 @@ Resources:
                 Action:
                   - comprehend:DetectSentiment
                 Resource: '*'
-  
-  
-
