@@ -24,6 +24,10 @@ Resources:
   S3TriggerPermission:
     Type: AWS::Lambda::Permission
     DependsOn: OVLambdaFunction
+      BucketName: ov-data-bucket-thing
+  
+  OVDatabase:
+    Type: AWS::DynamoDB::Table
     Properties:
       FunctionName:
         Fn::GetAtt:
