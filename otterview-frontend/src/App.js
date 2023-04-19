@@ -39,7 +39,7 @@ class App extends Component {
     }
 
     fetchData = () => {
-         fetch(apiUrl)
+         fetch('https://n3zyenwoj4.execute-api.us-east-1.amazonaws.com/prod')
          .then(
              response => response.json() 
              )
