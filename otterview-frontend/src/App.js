@@ -18,7 +18,7 @@ class App extends Component {
     }
 
     calculatePositiveTweetPercentage = () => {
-        if (this.state.data.length == 0) {
+        if (this.state.data.length === 0) {
             this.setState({positivePercentage: 50})
         }
         else {
