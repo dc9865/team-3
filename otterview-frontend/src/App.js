@@ -75,7 +75,7 @@ class App extends Component {
         return (
             <div className='height-setter'>
                 <h1 className='page-head'>OtterView {tweets}</h1>
-                <h5 className='page-head'>An event sentiment analysis system.</h5>    
+                <h5 className='page-head'>{apiUrl}</h5>    
 
                 <Row>
                     {this.renderTableHalf()}
