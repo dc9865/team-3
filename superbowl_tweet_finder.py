@@ -3,7 +3,7 @@ import requests
 from time import sleep
 
 # the token for my specific Twitter dev account
-BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAAKzrlgEAAAAAht6dzPN67U8IuexfSMWN279WB4c%3DyYf2sq8wgmczA0jFyhL14x5zk2QEvDpkietkahQDoiHQuAks7V'
+BEARER_TOKEN = ':3'
 
 def get_tweets():
     params = {'query': '#superbowl',
@@ -38,7 +38,7 @@ def get_tweets():
         file.write(save)
 
 def get_tweets_every_fifteen_minutes():
-    while datetime.now().second not in {0}:  # Wait 1 second until we are synced up with the 'every 15 minutes' clock
+    while datetime.now().second not in {0}:  # Wait 1 second until we are synced up with the 'every minute' clock
         sleep(1)
         print(datetime.now())
     
