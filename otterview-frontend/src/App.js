@@ -5,6 +5,8 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-circular-progressbar/dist/styles.css';
 
+const apiUrl = process.env.API_URL;
+
 class App extends Component {
     constructor(props){
         super(props);
@@ -37,7 +39,7 @@ class App extends Component {
     }
 
     fetchData = () => {
-         fetch('https://hnkg4770m4.execute-api.us-east-1.amazonaws.com/prod')
+         fetch(apiUrl)
          .then(
              response => response.json() 
              )
