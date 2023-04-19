@@ -8,15 +8,36 @@ import 'react-circular-progressbar/dist/styles.css';
 class App extends Component {
     constructor(props){
         super(props);
-        this.state = {data: []}
+        this.state = {
+            data: [],
+            positivePercentage: 50,
+            numComments: 0
+        }
+    }
+
+    calculatePositiveTweetPercentage = () => {
+        if (this.state.data.length == 0) {
+            this.setState({positivePercentage: 50})
+        }
+        else {
+            let posCount = 0
+            for (let i = 0; i < this.state.data.length; i++) {
+                if (this.state.data[i].PositiveSentiment > this.state.data[i].NegativeSentiment) {
+                    posCount++
+                }
+            }
+            this.setState({positivePercentage: Math.floor((posCount / this.state.data.length) * 100)})
+        }
     }
 
     updateData = (apiResponse) => {
         this.setState({data: apiResponse})
+        this.calculatePositiveTweetPercentage()
+        this.setState({numComments: apiResponse.length})
     }
 
     fetchData = () => {
-         fetch('https://aphcuaqzyk.execute-api.us-east-1.amazonaws.com/prod')
+         fetch('https://ephcf1yi80.execute-api.us-east-1.amazonaws.com/prod')
          .then(
              response => response.json() 
              )
@@ -31,9 +52,12 @@ class App extends Component {
         this.fetchData();
     }
 
-    renderGradeCircle() {
+    renderGradeCircle(percentage, numComments) {
         return (
-            <GradeCircle/>
+            <GradeCircle 
+                percentage = {percentage}
+                numComments = {numComments}
+            />
         )
     }
 
@@ -53,7 +77,7 @@ class App extends Component {
 
                 <Row>
                     {this.renderTableHalf()}
-                    {this.renderGradeCircle()}
+                    {this.renderGradeCircle(this.state.positivePercentage, this.state.numComments)}
                 </Row>
             </div>
         )
@@ -150,15 +174,14 @@ class GradeCircle extends Component {
     }
 
     render() {
-        let percentage = 80
-        let numComments = 10
+        let numComments = this.props.numComments
 
-        let grade = this.calculateGrade(percentage)
+        let grade = this.calculateGrade(this.props.percentage)
 
         return (
             <Col>
                 <CircularProgressbar 
-                    value={percentage}  
+                    value={this.props.percentage}  
                     text={`Grade: ${grade}`}
                     styles={buildStyles({
                         strokeLinecap: 'butt',
@@ -167,8 +190,8 @@ class GradeCircle extends Component {
                     })}
                 />
                 <Row>
-                    <Col style={{color: "#FF0000", textAlign: 'center'}}>{100 - percentage}% Negative</Col>
-                    <Col style={{color: "#00FF00", textAlign: 'center'}}>{percentage}% Positive</Col>
+                    <Col style={{color: "#FF0000", textAlign: 'center'}}>{100 - this.props.percentage}% Negative</Col>
+                    <Col style={{color: "#00FF00", textAlign: 'center'}}>{this.props.percentage}% Positive</Col>
                 </Row>
                 <Row>
                     <Col style={{textAlign: 'center', fontWeight: 'bold'}}>Total Comments Gathered: {numComments}</Col>
