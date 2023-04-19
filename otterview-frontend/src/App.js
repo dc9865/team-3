@@ -5,7 +5,7 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-circular-progressbar/dist/styles.css';
 
-const apiUrl = process.env.API_URL;
+const apiUrl = process.env.REACT_APP_ENV_API_URL;
 
 class App extends Component {
     constructor(props){
@@ -38,7 +38,7 @@ class App extends Component {
         this.setState({numComments: apiResponse.length})
     }
 
-    fetchData = () => {
+    fetchData = (apiUrl) => {
          fetch(apiUrl)
          .then(
              response => response.json() 
