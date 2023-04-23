@@ -6,35 +6,20 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-circular-progressbar/dist/styles.css';
 
 const apiUrl = process.env.REACT_APP_ENV_API_URL;
+const posPercentage = process.env.REACT_APP_ENV_POS_PERCENT; 
 
 class App extends Component {
     constructor(props){
         super(props);
         this.state = {
             data: [],
-            positivePercentage: 50,
+            positivePercentage: posPercentage,
             numComments: 0
-        }
-    }
-
-    calculatePositiveTweetPercentage = () => {
-        if (this.state.data.length === 0) {
-            this.setState({positivePercentage: 50})
-        }
-        else {
-            let posCount = 0
-            for (let i = 0; i < this.state.data.length; i++) {
-                if (this.state.data[i].PositiveSentiment > this.state.data[i].NegativeSentiment) {
-                    posCount++
-                }
-            }
-            this.setState({positivePercentage: Math.floor((posCount / this.state.data.length) * 100)})
         }
     }
 
     updateData = (apiResponse) => {
         this.setState({data: apiResponse})
-        this.calculatePositiveTweetPercentage()
         this.setState({numComments: apiResponse.length})
     }
 
