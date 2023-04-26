@@ -177,8 +177,8 @@ class GradeCircle extends Component {
                     })}
                 />
                 <Row>
-                    <Col style={{color: "#FF0000", textAlign: 'center'}}>{100 - this.props.percentage}% Negative</Col>
-                    <Col style={{color: "#00FF00", textAlign: 'center'}}>{this.props.percentage}% Positive</Col>
+                    <Col style={{color: "#FF0000", textAlign: 'center'}}>{(100 - this.props.percentage).toFixed(2)} % Negative</Col>
+                    <Col style={{color: "#00FF00", textAlign: 'center'}}>{this.props.percentage.toFixed(2)} % Positive</Col>
                 </Row>
                 <Row>
                     <Col style={{textAlign: 'center', fontWeight: 'bold'}}>Total Comments Gathered: {numComments}</Col>
