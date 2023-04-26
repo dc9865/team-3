@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-circular-progressbar/dist/styles.css';
 
 const apiUrl = process.env.REACT_APP_ENV_API_URL;
-const posPercentage = process.env.REACT_APP_ENV_POS_PERCENT; 
+const posPercentage = process.env.REACT_APP_ENV_POS_PERCENT;
 
 class App extends Component {
     constructor(props){

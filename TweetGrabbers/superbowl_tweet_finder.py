@@ -37,7 +37,7 @@ def get_tweets():
     with open("superbowl_tweets.txt", "a") as file:
         file.write(save)
 
-def get_tweets_every_fifteen_minutes():
+def get_tweets_every_minute():
     while datetime.now().second not in {0}:  # Wait 1 second until we are synced up with the 'every minute' clock
         sleep(1)
         print(datetime.now())
@@ -47,4 +47,4 @@ def get_tweets_every_fifteen_minutes():
     sleep(5) # sleep for five seconds so it doesn't continuously call get_tweets() for a minute
 
 while True:
-    get_tweets_every_fifteen_minutes()
+    get_tweets_every_minute()
