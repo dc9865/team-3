@@ -1,36 +1,47 @@
-# Cloud-Based Twitter Feed Application (Otterview)
 
-## Overview
-This application is designed to retrieve and display Twitter feeds in real-time using a cloud-based architecture powered by AWS. It effectively utilizes various AWS services to handle data retrieval, storage, and presentation.
+Otterview: Event Sentiment Analysis Tool
+Welcome to Otterview, a powerful event sentiment analysis tool that uses a range of AWS services to provide deep insights into event sentiments.
 
-## Features
+Features
+- Automated AWS Infrastructure Setup: Quick deployment of necessary infrastructure using AWS CloudFormation.
 
-- **Real-time Twitter Data Retrieval**: Leveraging AWS Lambda functions to fetch live feeds from Twitter's API.
-- **Scalable Data Storage**: Using DynamoDB to store Twitter data and Lambda functions to scan and return data in JSON format.
-- **Efficient Data Transfer**: AWS API Gateway bridges communication between the AWS Amplify front-end and DynamoDB backend.
-- **End-to-End Infrastructure Automation**: Employing AWS CloudFormation for complete infrastructure setup through Infrastructure as Code (IaC).
-- **Continuous Monitoring**: Utilizing AWS CloudWatch Events for real-time monitoring of Lambda functions.
+- Backend Management: Automated AWS Lambda invocation for processing and sentiment analysis.
 
-## Getting Started
+- Frontend Deployment: AWS Amplify frontend setup and deployment.
 
-### Prerequisites
+Prerequisites
+- AWS CLI: Ensure AWS CLI is configured with the necessary permissions to create and manage the AWS resources described in the ov_setup.yml CloudFormation template.
 
-- AWS Account with appropriate permissions
-- Node.js & npm (for AWS Amplify)
-- AWS CLI
+- Python Environment: This script requires Python to run. Make sure you have a suitable version installed.
 
-### Deployment
+- CloudFormation Template: Ensure the ov_setup.yml CloudFormation template is present in the same directory as the script. This template should correctly describe all the AWS infrastructure required for Otterview.
 
-1. **Set Up Infrastructure**:
-   - Use the provided CloudFormation templates to create the required resources in AWS.
+Setup
+- Clone the repository:
+   - git clone <repository_url>
 
-2. **API Gateway Configuration**:
-   - Ensure that the API Gateway is correctly set up to facilitate communication between AWS Amplify and DynamoDB.
+- Navigate to the directory:
+   - cd <directory_name>
 
-3. **Monitoring**:
-   - Check AWS CloudWatch for real-time logs and metrics.
+Usage
+- Run the script:
+   - python <script_name>.py
 
-## Acknowledgements
+- Follow the on-screen instructions: Input the name of your event and specify the data collection duration.
 
-- AWS Documentation
-- Twitter API Documentation
+- Monitor the script's progress. It will handle the initialization of AWS technologies, backend environment launch, sentiment analysis, and frontend environment creation.
+
+- Access the provided Amplify URL to view the sentiment analysis results on the frontend.
+
+Costs Warning
+- Please be aware of the costs associated with creating and using AWS resources. Each service and resource provisioned may have associated costs, depending on your AWS pricing plan.
+
+Troubleshooting
+- Ensure your AWS CLI is correctly configured with the right permissions.
+
+- If encountering any errors during setup or initialization, review the ov_setup.yml CloudFormation template for any misconfigurations.
+
+- Check the AWS Management Console for the status of resources if needed.
+
+Contributions
+- Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss what you'd like to change.
