@@ -10,35 +10,31 @@ Features
 - Frontend Deployment: AWS Amplify frontend setup and deployment.
 
 Prerequisites
-- AWS CLI: Ensure AWS CLI is configured with the necessary permissions to create and manage the AWS resources described in the ov_setup.yml CloudFormation template.
 
-- Python Environment: This script requires Python to run. Make sure you have a suitable version installed.
-
-- CloudFormation Template: Ensure the ov_setup.yml CloudFormation template is present in the same directory as the script. This template should correctly describe all the AWS infrastructure required for Otterview.
+- An AWS Free-Tier Account
+- AWS Cloudshell runs Python 3.4 or later (Preferably 2.7)
+- Download the following files to your local machine (in a location you will remember) : 
+   - https://drive.google.com/drive/folders/1XLjUaAw_EnWOQWyfs1UcL2Yge-TsFNPp?usp=share_link
+- Look at the Cloudformation resources in the ‘ov_setup.yml’  template file you just downloaded. Are there any duplicate resources currently running on your AWS Console ? If so, DELETE THEM. 
 
 Setup
-- Clone the repository:
-   - git clone <repository_url>
 
-- Navigate to the directory:
-   - cd <directory_name>
+1. Open up your AWS Console and go to ‘AWS Cloudshell’.
+2. Click the ‘Actions’ dropdown at the top right of the terminal. 
+3. From the dropdown, select ‘Upload File’.
+4. Select the one of the two files to upload then press ‘Upload’.
+5. Wait a few seconds, then repeat Steps 2-4 for the other file. 
+7. Make sure the files have successfully been uploaded to your terminal by executing the 'ls' command.
 
 Usage
-- Run the script:
-   - python <script_name>.py
+1. Run the script:
+   - python otterview.py
+2. Follow the on-screen instructions: Input the name of your event and specify the data collection duration.
+3. Otterview will now begin it’s analysis. You can follow along with the terminal and the process usually takes about 3-5 minutes. 
+4. Monitor the script's progress. It will handle the initialization of AWS technologies, backend environment launch, sentiment analysis, and frontend environment creation.
+5. Access the provided Amplify URL to view the sentiment analysis results on the frontend.
 
-- Follow the on-screen instructions: Input the name of your event and specify the data collection duration.
-
-- Monitor the script's progress. It will handle the initialization of AWS technologies, backend environment launch, sentiment analysis, and frontend environment creation.
-
-- Access the provided Amplify URL to view the sentiment analysis results on the frontend.
-
-Costs Warning
-- Please be aware of the costs associated with creating and using AWS resources. Each service and resource provisioned may have associated costs, depending on your AWS pricing plan.
-
-Troubleshooting
-- Ensure your AWS CLI is correctly configured with the right permissions.
-
-- If encountering any errors during setup or initialization, review the ov_setup.yml CloudFormation template for any misconfigurations.
-
-- Check the AWS Management Console for the status of resources if needed.
+Clean up
+1. Go back to AWS Cloudshell and type or copy/paste the following command: 
+   - aws cloudformation delete-stack --stack-name ov-stack 
+2. Verify that the stack has been deleted by checking the AWS Cloudformation Console. 
