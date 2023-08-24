@@ -1,0 +1,36 @@
+# Cloud-Based Twitter Feed Application (Otterview)
+
+## Overview
+This application is designed to retrieve and display Twitter feeds in real-time using a cloud-based architecture powered by AWS. It effectively utilizes various AWS services to handle data retrieval, storage, and presentation.
+
+## Features
+
+- **Real-time Twitter Data Retrieval**: Leveraging AWS Lambda functions to fetch live feeds from Twitter's API.
+- **Scalable Data Storage**: Using DynamoDB to store Twitter data and Lambda functions to scan and return data in JSON format.
+- **Efficient Data Transfer**: AWS API Gateway bridges communication between the AWS Amplify front-end and DynamoDB backend.
+- **End-to-End Infrastructure Automation**: Employing AWS CloudFormation for complete infrastructure setup through Infrastructure as Code (IaC).
+- **Continuous Monitoring**: Utilizing AWS CloudWatch Events for real-time monitoring of Lambda functions.
+
+## Getting Started
+
+### Prerequisites
+
+- AWS Account with appropriate permissions
+- Node.js & npm (for AWS Amplify)
+- AWS CLI
+
+### Deployment
+
+1. **Set Up Infrastructure**:
+   - Use the provided CloudFormation templates to create the required resources in AWS.
+
+2. **API Gateway Configuration**:
+   - Ensure that the API Gateway is correctly set up to facilitate communication between AWS Amplify and DynamoDB.
+
+3. **Monitoring**:
+   - Check AWS CloudWatch for real-time logs and metrics.
+
+## Acknowledgements
+
+- AWS Documentation
+- Twitter API Documentation
